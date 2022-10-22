@@ -56,14 +56,15 @@ namespace SQLManager.Dal
                 con.Open();
                 using (SqlCommand cmd = con.CreateCommand())
                 {
-                    cmd.CommandText = string.Format(Query, db.Name, query);
+                    cmd.CommandText = (db.Name != null) ? string.Format(Query, db.Name, query) : query;
                     cmd.CommandType = CommandType.Text;
 
                     SqlDataAdapter da = new SqlDataAdapter
                     {
                         SelectCommand = cmd
                     };
-                    DataSet dataSet = new DataSet(db.Name);
+
+                    DataSet dataSet = new DataSet(db.Name ?? "Main");
                     da.Fill(dataSet);
 
                     //using (SqlDataReader dr = cmd.ExecuteReader())

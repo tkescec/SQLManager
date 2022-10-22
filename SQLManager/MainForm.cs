@@ -15,6 +15,7 @@ namespace SQLManager
 {
     public partial class MainForm : Form
     {
+        private const string ROOT_NODE = "Server"; 
         private TabControl tcQuery = new TabControl();
         private string selectedDatabase;
 
@@ -38,7 +39,7 @@ namespace SQLManager
 
         private void InitializeMenuTreeView(IList<Database> databases)
         {
-            TreeNode rootNode = new TreeNode("Server");
+            TreeNode rootNode = new TreeNode(ROOT_NODE);
             ContextMenuStrip contextMenu = CreateNodeContextMenu();
 
             foreach (var item in databases)
@@ -50,6 +51,7 @@ namespace SQLManager
 
             tvDatabases.Nodes.Add(rootNode);
             tvDatabases.NodeMouseClick += (sender, args) => tvDatabases.SelectedNode = args.Node;
+            tvDatabases.ExpandAll();
         }
 
         private void InitTabControl()
@@ -73,13 +75,22 @@ namespace SQLManager
             return contextMenu;
         }
 
-        private void QueryLabel_Click(object sender, EventArgs e)
+        private void CreateQueryTabWithTextBox()
         {
             TreeNode SelectedNode = tvDatabases.SelectedNode;
 
-            selectedDatabase = SelectedNode.Text;
+            if (SelectedNode.Text != ROOT_NODE)
+            {
+                selectedDatabase = SelectedNode.Text;
+            }
 
             string title = "New Query | " + selectedDatabase + "      ";
+
+            if (selectedDatabase == null)
+            {
+                title = "New Query      ";
+            }
+            
             TabPage myTabPage = new TabPage(title);
 
             TextBox textBox = new TextBox
@@ -97,7 +108,49 @@ namespace SQLManager
             myTabPage.Controls.Add(textBox);
             tcQuery.TabPages.Add(myTabPage);
             tcQuery.SelectedTab = myTabPage;
+        }
 
+        private void ExecuteQuery()
+        {
+            if (tcQuery.TabPages.Count == 0)
+            {
+                return;
+            }
+
+            ClearResultsTabControl();
+
+            try
+            {
+                TextBox textBox = tcQuery.SelectedTab.Controls.OfType<TextBox>().First();
+                Database db = new Database(selectedDatabase);
+                RepositoryFactory.GetRepository().GetDataSet(db, textBox.Text);
+
+                tbMessage.Text = "Query success!";
+                RefreshTreeView();
+
+            }
+            catch (Exception e)
+            {
+                tcResults.SelectedTab = tpMessage;
+                tbMessage.Text = e.Message;
+            }
+        }
+
+        private void RefreshTreeView()
+        {
+            tvDatabases.Nodes.Clear();
+            LoadDatabases();
+        }
+
+        private void ClearResultsTabControl()
+        {
+            tcResults.SelectedTab = tpResults;
+            tbMessage.Text = "";
+        }
+
+        private void QueryLabel_Click(object sender, EventArgs e)
+        {
+            CreateQueryTabWithTextBox();
         }
 
         private void TcQuery_DrawItem(object sender, DrawItemEventArgs e)
@@ -149,36 +202,14 @@ namespace SQLManager
             }
         }
 
+        private void NewQueryMenuItem_Click(object sender, EventArgs e)
+        {
+            CreateQueryTabWithTextBox();
+        }
+
         private void MainForm_FormClosed(object sender, FormClosedEventArgs e) => Application.Exit();
 
         private void BtnExecute_Click(object sender, EventArgs e) => ExecuteQuery();
-
-        private void ExecuteQuery()
-        {
-            ClearResultsTabControl();
-
-            if (selectedDatabase == null)
-            {
-                return;
-                //var test = ds.Tables[0];
-            }
-            try
-            {
-                TextBox textBox = tcQuery.SelectedTab.Controls.OfType<TextBox>().First();
-                Database db = new Database(selectedDatabase);
-                RepositoryFactory.GetRepository().GetDataSet(db, textBox.Text);
-            }
-            catch (Exception e)
-            {
-                tcResults.SelectedTab = tpMessage;
-                tbMessage.Text = e.Message;
-            }
-        }
-
-        private void ClearResultsTabControl()
-        {
-            tcResults.SelectedTab = tpResults;
-            tbMessage.Text = "";
-        }
+        
     }
 }
