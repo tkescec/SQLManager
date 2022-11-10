@@ -12,6 +12,6 @@ namespace SQLManager.Dal
     {
         void LogIn(string server, string username, string password);
         IEnumerable<Database> GetDatabases();
-        void GetDataSet(Database db, string query);
+        DataSet GetDataSet(Database db, string query);
     }
 }

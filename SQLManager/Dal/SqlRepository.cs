@@ -49,7 +49,7 @@ namespace SQLManager.Dal
             }
         }
 
-        public void GetDataSet(Database db, string query)
+        public DataSet GetDataSet(Database db, string query)
         {
             using (SqlConnection con = new SqlConnection(cs))
             {
@@ -67,19 +67,8 @@ namespace SQLManager.Dal
                     DataSet dataSet = new DataSet(db.Name ?? "Main");
                     da.Fill(dataSet);
 
-                    //using (SqlDataReader dr = cmd.ExecuteReader())
-                    //{
-                    //    while (dr.Read())
-                    //    {
-                    //        var test = dr;
-                    //        //yield return new DataSet
-                    //        //{
-                    //        //    Name = dr[nameof(Parameter.Name)].ToString(),
-                    //        //    Mode = dr[nameof(Parameter.Mode)].ToString(),
-                    //        //    DataType = dr[nameof(Parameter.DataType)].ToString()
-                    //        //};
-                    //    }
-                    //}
+                    return dataSet;
+
                 }
             }
         }
